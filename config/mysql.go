@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitDB() (*gorm.DB, error) {
+func InitDatabase() (*gorm.DB, error) {
 	DB_USER := viper.GetString("DATABASE.USER")
 	DB_PASS := viper.GetString("DATABASE.PASS")
 	DB_HOST := viper.GetString("DATABASE.HOST")

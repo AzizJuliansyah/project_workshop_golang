@@ -1,21 +1,21 @@
 package helpers
 
-type MetaStruct struct {
-	Code int `json:"code"`
-	Status string `json:"status"`
+type MetaFormat struct {
+	Code    int    `json:"code"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
-type APIResponseFormatStruct struct {
-	Meta MetaStruct
-	Data any
+type APIResponseFormat struct {
+	Meta MetaFormat `json:"meta"`
+	Data any        `json:"data"`
 }
 
-func APIResponseFormat(code int, status, message string, data any) APIResponseFormatStruct {
-	return APIResponseFormatStruct{
-		Meta: MetaStruct{
-			Code: code,
-			Status: status,
+func APIResponse(code int, status, message string, data any) APIResponseFormat {
+	return APIResponseFormat{
+		Meta: MetaFormat{
+			Code:    code,
+			Status:  status,
 			Message: message,
 		},
 		Data: data,

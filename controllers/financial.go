@@ -21,108 +21,104 @@ func (controller *FinancialController) CreateFinancial(ctx *gin.Context) {
 	var input models.FinancialInput
 	err := ctx.ShouldBindJSON(&input)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, helpers.APIResponseFormat(http.StatusBadRequest, "error", "Format JSON tidak sesuai", err.Error()))
+		ctx.JSON(http.StatusBadRequest, helpers.APIResponse(http.StatusBadRequest, "error", "Request tidak sesuai dengan format json", err.Error()))
 		return
 	}
 
 	validate := helpers.GetValidator()
 	if err := validate.Struct(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, helpers.APIResponseFormat(http.StatusBadRequest, "error", "Error validation", helpers.ParseValidationErrors(err)))
+		ctx.JSON(http.StatusBadRequest, helpers.APIResponse(http.StatusBadRequest, "error", "Request tidak sesuai dengan aturan validasi", helpers.ParseValidationErrors(err)))
 		return
-	} 
+	}
 
 	financial := models.Financial{
 		Category: input.Category,
 		Nominal: input.Nominal,
-		Information: input.Information,
+		Description: input.Description,
 	}
 
 	err = controller.db.Create(&financial).Error
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal membuat catatan keuangan", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal membuat catatan keuangan", err.Error()))
 		return
 	}
-
-	ctx.JSON(http.StatusCreated, helpers.APIResponseFormat(http.StatusCreated, "success", "Berhasil menambahkan catatan keuangan", financial))
+	
+	ctx.JSON(http.StatusCreated, helpers.APIResponse(http.StatusCreated, "success", "Berhasil membuat catatan keuangan", financial))
 }
 
 func (controller *FinancialController) GetAllFinancial(ctx *gin.Context) {
 	category := ctx.Query("category")
 
-	var financial []models.Financial
 	query := controller.db
 	if category != "" {
-		query = query.Where("category = ?", category)
+		query = query.Where("category", category)
 	}
 
-
-	err := query.Find(&financial).Error
+	var financials []models.Financial
+	err := query.Find(&financials).Error
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal mengambil catatan keuangan", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal mengambil data catatan keuangan", err.Error()))
 		return
 	}
-
-	ctx.JSON(http.StatusOK, helpers.APIResponseFormat(http.StatusOK, "success", "List catatan keuangan", financial))
+	
+	ctx.JSON(http.StatusOK, helpers.APIResponse(http.StatusOK, "success", "Berhasil mengambil data catatan keuangan", financials))
 }
 
 func (controller *FinancialController) GetFinancialByID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	var financial models.Financial
-	err := controller.db.First(&financial, id).Error
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal mengambil catatan keuangan", err.Error()))
+	if err := controller.db.First(&financial, id).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal mengambil data catatan keuangan", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, helpers.APIResponseFormat(http.StatusOK, "success", "Catatan keuangan", financial))
+	ctx.JSON(http.StatusOK, helpers.APIResponse(http.StatusOK, "success", "Berhasil mengambil data catatan keuangan", financial))
 }
 
 func (controller *FinancialController) UpdateFinancial(ctx *gin.Context) {
 	id := ctx.Param("id")
 
+	var financial models.Financial
+	if err := controller.db.First(&financial, id).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal mengambil data catatan keuangan", err.Error()))
+		return
+	}
+
 	var input models.FinancialInput
 	err := ctx.ShouldBindJSON(&input)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, helpers.APIResponseFormat(http.StatusBadRequest, "error", "Format JSON tidak sesuai", err.Error()))
+		ctx.JSON(http.StatusBadRequest, helpers.APIResponse(http.StatusBadRequest, "error", "Request tidak sesuai dengan format json", err.Error()))
 		return
 	}
-	
+
 	validate := helpers.GetValidator()
 	if err := validate.Struct(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, helpers.APIResponseFormat(http.StatusBadRequest, "error", "Error validation", helpers.ParseValidationErrors(err)))
-		return
-	} 
-
-	var financial models.Financial
-	err = controller.db.First(&financial, id).Error
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal mengambil catatan keuangan", err.Error()))
+		ctx.JSON(http.StatusBadRequest, helpers.APIResponse(http.StatusBadRequest, "error", "Request tidak sesuai dengan aturan validasi", helpers.ParseValidationErrors(err)))
 		return
 	}
 
 	financial.Category = input.Category
 	financial.Nominal = input.Nominal
-	financial.Information = input.Information
+	financial.Description = input.Description
 
 	err = controller.db.Save(&financial).Error
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal membuat catatan keuangan", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal mengubah data catatan keuangan", err.Error()))
 		return
 	}
-
-	ctx.JSON(http.StatusCreated, helpers.APIResponseFormat(http.StatusCreated, "success", "Berhasil mengubah data catatan keuangan", financial))
+	
+	ctx.JSON(http.StatusOK, helpers.APIResponse(http.StatusOK, "success", "Berhasil mengubah data catatan keuangan", financial))
 }
 
 func (controller *FinancialController) DeleteFinancial(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	var financial models.Financial
-	err := controller.db.Delete(&financial, id).Error
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, helpers.APIResponseFormat(http.StatusInternalServerError, "error", "Gagal mengambil catatan keuangan", err.Error()))
+	if err := controller.db.Delete(&financial, id).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, helpers.APIResponse(http.StatusInternalServerError, "error", "Gagal menghapus data catatan keuangan", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, helpers.APIResponseFormat(http.StatusOK, "success", "Berhasil menghapus data catatan keuangan", nil))
+	ctx.JSON(http.StatusOK, helpers.APIResponse(http.StatusOK, "success", "Berhasil menghapus data catatan keuangan", financial))
 }

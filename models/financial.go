@@ -14,17 +14,17 @@ func (FinancialBase) TableName() string {
 
 type Financial struct {
 	FinancialBase
-	ID          int64          `json:"id"`
+	ID          int            `json:"id"`
 	Category    string         `json:"category"`
-	Nominal     int64          `json:"nominal"`
-	Information string         `json:"information"`
+	Nominal     int            `json:"nominal"`
+	Description string         `json:"description"`
 	CreatedAt   time.Time      `gorm:"autoCreateAt" json:"created_at"`
 	UpdatedAt   time.Time      `gorm:"autoUpdateAt" json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
 type FinancialInput struct {
 	Category    string `json:"category" validate:"required"`
-	Nominal     int64  `json:"nominal" validate:"required"`
-	Information string `json:"information" validate:"required,min=10"`
+	Nominal     int    `json:"nominal" validate:"required,min=2"`
+	Description string `json:"description" validate:"required,min=10"`
 }
